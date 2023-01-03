@@ -1,7 +1,8 @@
 import argparse
 import sys
+from jiwer import compute_measures
 
-from datasets import load_metric
+from evaluate import load
 
 from src.normalizer import normalize
 
@@ -28,8 +29,12 @@ def main(argv):
     refs = read_file(args.ref)
     pred = read_file(args.pred)
 
-    wer = load_metric("wer")
-    print("WER: {:.2f}".format(100 * wer.compute(predictions=refs, references=pred)))
+    wer = load("wer")
+    wer_score = wer.compute(predictions=refs, references=pred)
+    print("WER: {:.2f}".format(100 * wer_score))
+
+    res = compute_measures(truth=refs, hypothesis=pred)
+    print(res)
 
 
 if __name__ == "__main__":
