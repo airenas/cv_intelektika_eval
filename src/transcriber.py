@@ -2,12 +2,15 @@ import os
 import time
 
 import requests
+from pyrate_limiter import RequestRate, Duration, Limiter
 
 
 class Transcriber:
     def __init__(self, url: str, key: str = ""):
         self.__url = url
         self.__key = key
+        rate = RequestRate(10, Duration.SECOND)
+        self.limiter = Limiter(rate)
 
     def predict(self, file: str) -> str:
         try:
@@ -30,6 +33,7 @@ class Transcriber:
         headers = {}
         if self.__key:
             headers = {"Authorization": "Key " + self.__key}
+        self.rate_limit()
         r = requests.post(url, files=files, data=values, timeout=20, headers=headers)
         if r.status_code != 200:
             raise Exception("Can't upload '{}'".format(r.text))
@@ -37,6 +41,7 @@ class Transcriber:
 
     def is_finished(self, _id):
         url = "%s/ausis/status.service/status/%s" % (self.__url, _id)
+        self.rate_limit()
         r = requests.get(url, timeout=10)
         if r.status_code != 200:
             raise Exception("Can't get status '{}'".format(r.text))
@@ -47,7 +52,11 @@ class Transcriber:
 
     def get_result(self, _id):
         url = "%s/ausis/result.service/result/%s/resultFinal.txt" % (self.__url, _id)
+        self.rate_limit()
         r = requests.get(url, timeout=10)
         if r.status_code != 200:
             raise Exception("Can't get result '{}'".format(r.text))
         return r.text
+
+    def rate_limit(self):
+        self.limiter.ratelimit("request", delay=True, max_delay=Duration.SECOND * 60)

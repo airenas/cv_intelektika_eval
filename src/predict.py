@@ -54,7 +54,7 @@ def main(argv):
 
     job_queue = queue.Queue(maxsize=10)
     workers = []
-    wc = 15
+    wc = 10
 
     def add_jobs():
         for _j in jobs:
