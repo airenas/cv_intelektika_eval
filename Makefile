@@ -7,6 +7,7 @@ gz?=cv-corpus-12.0-2022-12-07-lt.tar.gz
 python_cmd=PYTHONPATH=./ LOG_LEVEL=INFO python
 work_dir?=work
 extr_dir?=cv-corpus-12.0-2022-12-07/lt
+n?=20
 ############################################
 ${work_dir}/extracted: 
 	mkdir -p $@
@@ -31,6 +32,10 @@ ${work_dir}/predicted.txt: ${work_dir}/ref.txt
 eval/wer: ${work_dir}/predicted.txt ${work_dir}/ref.txt
 	$(python_cmd) src/estimate.py --ref ${work_dir}/ref.txt --pred ${work_dir}/predicted.txt
 .PHONY: eval/wer
+############################################
+eval/cmp: ${work_dir}/predicted.txt ${work_dir}/ref.txt
+	$(python_cmd) src/cmp.py --ref ${work_dir}/ref.txt --pred ${work_dir}/predicted.txt --n $(n)
+.PHONY: eval/cmp
 ############################################
 clean:
 	rm -rf $(work_dir)
