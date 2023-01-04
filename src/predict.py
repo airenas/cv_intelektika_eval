@@ -83,7 +83,7 @@ def main(argv):
         for i, j in enumerate(jobs):
             j.wait()
             pbar.update(1)
-            print("%s\t%s" % (os.path.basename(j.file), j.str))
+            print("%s\t%s" % (os.path.basename(j.file), j.str.replace("\n", " ")))
     for w in workers:
         w.join()
 
