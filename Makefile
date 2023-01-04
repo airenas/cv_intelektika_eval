@@ -8,6 +8,7 @@ python_cmd=PYTHONPATH=./ LOG_LEVEL=INFO python
 work_dir?=work
 extr_dir?=cv-corpus-12.0-2022-12-07/lt
 n?=20
+#url=http://qhhx.c.dedikuoti.lt
 ############################################
 ${work_dir}/extracted: 
 	mkdir -p $@
@@ -26,16 +27,21 @@ ${work_dir}/ref.txt: ${work_dir}/extracted/.done
 	cat ${work_dir}/extracted/${extr_dir}/test.tsv | cut -f 2,3 | tail -n +2 > $@
 ############################################
 ${work_dir}/predicted.txt: ${work_dir}/ref.txt
-	$(python_cmd) src/predict.py --in_f $^ --l ${work_dir}/extracted/${extr_dir}/clips > $@_
+	$(python_cmd) src/predict.py --in_f $^ --l ${work_dir}/extracted/${extr_dir}/clips \
+		--url $(url) > $@_
 	mv $@_ $@
 ############################################
 eval/wer: ${work_dir}/predicted.txt ${work_dir}/ref.txt
-	$(python_cmd) src/estimate.py --ref ${work_dir}/ref.txt --pred ${work_dir}/predicted.txt
+	$(python_cmd) src/estimate.py --ref ${work_dir}/ref.txt --pred ${work_dir}/predicted.txt 
 .PHONY: eval/wer
 ############################################
 eval/cmp: ${work_dir}/predicted.txt ${work_dir}/ref.txt
 	$(python_cmd) src/cmp.py --ref ${work_dir}/ref.txt --pred ${work_dir}/predicted.txt --n $(n)
 .PHONY: eval/cmp
+############################################
+eval/tmp/wer: ${work_dir}/ref.txt
+	$(python_cmd) src/estimate.py --ref ${work_dir}/ref.txt --pred ${work_dir}/predicted.txt_ 
+.PHONY: eval/tmp/wer
 ############################################
 clean:
 	rm -rf $(work_dir)

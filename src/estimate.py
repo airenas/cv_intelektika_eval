@@ -37,7 +37,7 @@ def main(argv):
     print("WER: {:.2f}".format(100 * wer_score))
 
     res = compute_measures(truth=refs, hypothesis=pred)
-    print(res)
+    # print(res)
     print("Err: {}/{}, (s: {}, d: {}, i: {})".format(res['substitutions'] + res['deletions'] + res['insertions'],
                                                      res['hits'] + res['substitutions'] + res['deletions'],
                                                      res['substitutions'], res['deletions'], res['insertions']))
