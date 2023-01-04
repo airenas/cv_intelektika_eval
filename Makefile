@@ -8,7 +8,7 @@ python_cmd=PYTHONPATH=./ LOG_LEVEL=INFO python
 work_dir?=work
 extr_dir?=cv-corpus-12.0-2022-12-07/lt
 n?=20
-#url=http://qhhx.c.dedikuoti.lt
+tr_url?=https://atpazinimas.intelektika.lt
 ############################################
 ${work_dir}/extracted: 
 	mkdir -p $@
@@ -28,7 +28,7 @@ ${work_dir}/ref.txt: ${work_dir}/extracted/.done
 ############################################
 ${work_dir}/predicted.txt: ${work_dir}/ref.txt
 	$(python_cmd) src/predict.py --in_f $^ --l ${work_dir}/extracted/${extr_dir}/clips \
-		--url $(url) > $@_
+		--url $(tr_url) > $@_
 	mv $@_ $@
 ############################################
 eval/wer: ${work_dir}/predicted.txt ${work_dir}/ref.txt
