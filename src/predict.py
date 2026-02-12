@@ -19,6 +19,7 @@ class Work:
         self.cache_file = Path(cache_dir) / (os.path.basename(file) + ".txt")
         self.wait_queue = queue.Queue(maxsize=1)
         self.str = ""
+        self.err = None
 
     def done(self):
         return self.wait_queue.put(self, block=False)
@@ -27,13 +28,17 @@ class Work:
         return self.wait_queue.get()
 
     def predict(self, trans, update_f) -> str:
-        if self.cache_file.exists():
-            with open(self.cache_file, 'r') as f:
-                self.str = f.read()
-        else:
-            self.str = predict(trans, self.file, update_f)
-            with open(self.cache_file, 'w') as f:
-                f.write(self.str)
+        try:
+            if self.cache_file.exists():
+                with open(self.cache_file, 'r') as f:
+                    self.str = f.read()
+            else:
+                self.str = predict(trans, self.file, update_f)
+                with open(self.cache_file, 'w') as f:
+                    f.write(self.str)
+        except BaseException as err:
+            print("Error processing file {}: {}".format(self.file, err))
+            self.err = err
 
         self.done()
 
@@ -122,15 +127,23 @@ def main(argv):
     for i in range(wc):
         start_thread(start)
 
+    err_count = 0
     progress_group = Group(Panel(Group(progress)), Panel(Group(overall_progress)), )
     with open(args.out_file, 'w') as out_f:
         with Live(progress_group, refresh_per_second=4):
             for j in jobs:
                 j.wait()
+                if j.err:
+                    err_count += 1
+                    continue
                 out_f.write("%s\t%s\n" % (os.path.basename(j.file), j.str.replace("\n", " ")))
 
     for w in workers:
         w.join()
+
+    if err_count > 0:
+        raise RuntimeError("Failed %d times" % err_count)
+    print("DONE")
 
 
 if __name__ == "__main__":
