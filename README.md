@@ -2,6 +2,10 @@
 
 Evaluation of Intelektika.lt transcription service on Common Voice Dataset
 
+## Requirements
+
+- python 3.12
+
 ## Steps to estimate WER
 
 1. install python requirements
@@ -18,15 +22,16 @@ make eval/wer
 
 Used *test.tsv* file of the [Common Voice Dataset](https://commonvoice.mozilla.org/en/datasets) Lithuanian subset
 
-|Version|WER|Sentemces|Words|Err all|Subst|Del|Ins|
-|-|-|-|-|-|-|-|-|
-|Common Voice Corpus 12.0|6.96%|3785|25370|1768|1422|156|190|
+| Version                  | WER   | Sentences | Words | Err all | Subst | Del | Ins |
+| ------------------------ | ----- | --------- | ----- | ------- | ----- | --- | --- |
+| Common Voice Corpus 24.0 |       | 5517      |       |         |       |     |     |
+| Common Voice Corpus 12.0 | 6.96% | 3785      | 25370 | 1768    | 1422  | 156 | 190 |
 
 ## Samples
 
 ```bash
-make eval/cmp n=20
-PYTHONPATH=./ LOG_LEVEL=INFO python src/cmp.py --ref work/ref.txt --pred work/predicted.txt --n 20
+make eval/cmp
+PYTHONPATH=./ LOG_LEVEL=INFO python src/cmp.py --ref work/ref.txt --pred work/predicted.txt
 
 reference: Aštuonios salos vadinamos „pagrindinėmis“ arba „didžiosiomis“ salomis.
 predicted: Aštuonios salos vadinamos pagrindinėmis arba didžiosiomis salomis.

@@ -2,7 +2,7 @@ import argparse
 import sys
 
 from evaluate import load
-from jiwer import compute_measures
+from jiwer import process_words
 
 from src.normalizer import normalize
 
@@ -36,11 +36,11 @@ def main(argv):
     wer_score = wer.compute(predictions=refs, references=pred)
     print("WER: {:.2f}".format(100 * wer_score))
 
-    res = compute_measures(truth=refs, hypothesis=pred)
+    res = process_words(reference=refs, hypothesis=pred)
     # print(res)
-    print("Err: {}/{}, (s: {}, d: {}, i: {})".format(res['substitutions'] + res['deletions'] + res['insertions'],
-                                                     res['hits'] + res['substitutions'] + res['deletions'],
-                                                     res['substitutions'], res['deletions'], res['insertions']))
+    print("Err: {}/{}, (s: {}, d: {}, i: {})".format(res.substitutions + res.deletions + res.insertions,
+                                                     res.hits + res.substitutions + res.deletions,
+                                                     res.substitutions, res.deletions, res.insertions))
 
 
 if __name__ == "__main__":

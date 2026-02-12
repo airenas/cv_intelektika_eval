@@ -3,6 +3,7 @@ import os
 import queue
 import sys
 import threading
+from pathlib import Path
 
 from tqdm import tqdm
 
@@ -10,8 +11,9 @@ from src.transcriber import Transcriber
 
 
 class Work:
-    def __init__(self, file: str):
+    def __init__(self, file: str, cache_dir: str = ""):
         self.file = file
+        self.cache_file = Path(cache_dir) / (os.path.basename(file) + ".txt")
         self.wait_queue = queue.Queue(maxsize=1)
         self.str = ""
 
@@ -22,7 +24,14 @@ class Work:
         return self.wait_queue.get()
 
     def predict(self, trans) -> str:
-        self.str = predict(trans, self.file)
+        if self.cache_file.exists():
+            with open(self.cache_file, 'r') as f:
+                self.str = f.read()
+        else:
+            self.str = predict(trans, self.file)
+            with open(self.cache_file, 'w') as f:
+                f.write(self.str)
+
         self.done()
 
 
@@ -37,7 +46,12 @@ def main(argv):
     parser.add_argument("--in_f", nargs='?', required=True, help="List file")
     parser.add_argument("--l", nargs='?', required=True, help="Audio file directory")
     parser.add_argument("--url", nargs='?', default="https://atpazinimas.intelektika.lt", help="Transcriber URL")
+    parser.add_argument("--cache_dir", nargs='?', default="", help="Cache directory")
+
     args = parser.parse_args(args=argv)
+
+    if not args.cache_dir:
+        raise RuntimeError("Cache dir is required")
 
     trans = Transcriber(args.url)
 
@@ -50,7 +64,7 @@ def main(argv):
             strs = line.split("\t")
             f = strs[0]
             fa = "%s/%s" % (args.l, f)
-            jobs.append(Work(fa))
+            jobs.append(Work(file=fa, cache_dir=args.cache_dir))
 
     job_queue = queue.Queue(maxsize=10)
     workers = []

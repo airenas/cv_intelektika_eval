@@ -1,55 +1,33 @@
-import re
+"""Small text utilities extracted from prepare_corpus.py for easier testing.
+"""
+import unicodedata
 
-chars_to_ignore = [
-    ",", "?", ".", "!", "-", ";", ":", '""', "%", "'", '"', "�",
-    "#", "!", "؟", "?", "«", "»", "،", "(", ")", "؛", "'ٔ", "٬", 'ٔ', ",", "?",
-    ".", "!", "-", ";", ":", '"', "“", "%", "‘", "”", "�", "–", "…", "_", "”", '“', '„',
-    "<", ">"
-]
-chars_to_ignore = f"""[{"".join(chars_to_ignore)}]"""
-
-dictionary_mapping = {
-    "\u200c": " ",
-    "\u200d": " ",
-    "\u200e": " ",
-    "\u200f": " ",
-    "\ufeff": " ",
-    "\u0307": " ",
-}
+allowed_lt = set("ąčęėįšųūž")
 
 
-def multiple_replace(text, chars_to_mapping):
-    pattern = "|".join(map(re.escape, chars_to_mapping.keys()))
-    return re.sub(pattern, lambda m: chars_to_mapping[m.group()], str(text))
+def remove_accent(c: str) -> str:
+    # Preserve ASCII characters, whitespace, and explicitly allowed Lithuanian letters
+    if c.isspace() or c.isascii() or c in allowed_lt:
+        return c
+    # Normalize to NFKD form then remove combining marks (category 'Mn')
+    nkfd = unicodedata.normalize("NFKD", c)
+    base_chars = [ch for ch in nkfd if unicodedata.category(ch) != "Mn"]
+    return "".join(base_chars)
 
 
-def remove_special_characters(text, chars_to_ignore_regex):
-    text = re.sub(chars_to_ignore_regex, '', text).lower() + " "
-    return text
+def normalize(param: str) -> str:
+    """Clean the input text.
 
+    - replace punctuations with spaces
+    - collapse whitespace
+    - casefold to lowercase
+    - attempt to normalize accents (via NFKD)
 
-def normalizer_at_word_level(text):
-    words = text.split()
-    _text = []
-
-    for word in words:
-        # Normalizer at word level
-        _text.append(word)
-
-    return " ".join(_text) + " "
-
-
-def normalize(text):
-    # Dictionary mapping
-    text = multiple_replace(text, dictionary_mapping)
-    text = re.sub(" +", " ", text)
-
-    # Remove specials
-    text = remove_special_characters(text, chars_to_ignore)
-    text = re.sub(" +", " ", text)
-
-    # Normalizer at word level
-    text = normalizer_at_word_level(text)
-    text = re.sub(" +", " ", text)
-
-    return text
+    Returns (cleaned_text)
+    """
+    # remove punctuations
+    res = "".join(c if c.isalnum() or c.isspace() else " " for c in param)
+    # remove double spaces
+    res = " ".join(res.split()).casefold()
+    res = "".join([remove_accent(c) for c in res])
+    return res

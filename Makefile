@@ -1,34 +1,33 @@
 ############################################
 -include Makefile.options
 ############################################
-url?=https://mozilla-common-voice-datasets.s3.dualstack.us-west-2.amazonaws.com/cv-corpus-12.0-2022-12-07/cv-corpus-12.0-2022-12-07-lt.tar.gz
 data_dir?=data
-gz?=cv-corpus-12.0-2022-12-07-lt.tar.gz
 python_cmd=PYTHONPATH=./ LOG_LEVEL=INFO python
 work_dir?=work
-extr_dir?=cv-corpus-12.0-2022-12-07/lt
 n?=20
 tr_url?=https://atpazinimas.intelektika.lt
 ############################################
+common_voice_gz?=cv-corpus-24.0-2025-12-05-lt.tar.gz
+extr_dir?=cv-corpus-24.0-2025-12-05/lt
+############################################
 ${work_dir}/extracted: 
 	mkdir -p $@
-${data_dir}:
+${data_dir} ${work_dir}/cache:
 	mkdir -p $@	
 ############################################
-${work_dir}/extracted/.done: $(data_dir)/${gz} | ${work_dir}/extracted
-	tar xvzf $(data_dir)/${gz} -C ${work_dir}/extracted
+${data_dir}/${common_voice_gz}: | ${data_dir}
+	echo "Manually Download Common Voice LT test corpus to ${data_dir}/${common_voice_gz}"
+	exit 1	
+${work_dir}/extracted/.done: ${data_dir}/${common_voice_gz} | ${work_dir}/extracted
+	tar xvzf ${data_dir}/${common_voice_gz} -C ${work_dir}/extracted
 	touch $@
 ############################################
-${data_dir}/${gz}: | ${data_dir}
-	curl ${url} -o $@_
-	mv $@_ $@
-############################################
 ${work_dir}/ref.txt: ${work_dir}/extracted/.done
-	cat ${work_dir}/extracted/${extr_dir}/test.tsv | cut -f 2,3 | tail -n +2 > $@
+	cat ${work_dir}/extracted/${extr_dir}/test.tsv | cut -f 2,4 | tail -n +2 > $@
 ############################################
-${work_dir}/predicted.txt: ${work_dir}/ref.txt
+${work_dir}/predicted.txt: ${work_dir}/ref.txt | ${work_dir}/cache
 	$(python_cmd) src/predict.py --in_f $^ --l ${work_dir}/extracted/${extr_dir}/clips \
-		--url $(tr_url) > $@_
+		--cache_dir ${work_dir}/cache --url $(tr_url) > $@_
 	mv $@_ $@
 ############################################
 eval/wer: ${work_dir}/predicted.txt ${work_dir}/ref.txt
