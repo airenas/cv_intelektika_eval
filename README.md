@@ -24,8 +24,14 @@ Used *test.tsv* file of the [Common Voice Dataset](https://commonvoice.mozilla.o
 
 | Version                  | WER   | Sentences | Words | Err all | Subst | Del | Ins |
 | ------------------------ | ----- | --------- | ----- | ------- | ----- | --- | --- |
-| Common Voice Corpus 24.0 |       | 5517      |       |         |       |     |     |
+| Common Voice Corpus 24.0 | 7.02  | 5517      | 37220 | 2614    | 2192  | 193 | 229 |
 | Common Voice Corpus 12.0 | 6.96% | 3785      | 25370 | 1768    | 1422  | 156 | 190 |
+
+
+Refs: 5517, Predictions: 5517
+WER: 7.02
+Err: 2614/37220, (s: 2192, d: 193, i: 229)
+
 
 ## Samples
 

@@ -4,7 +4,7 @@
 data_dir?=data
 python_cmd=PYTHONPATH=./ LOG_LEVEL=INFO python
 work_dir?=work
-n?=10
+workers?=10
 tr_url?=https://atpazinimas.intelektika.lt
 ############################################
 common_voice_gz?=cv-corpus-24.0-2025-12-05-lt.tar.gz
@@ -27,7 +27,7 @@ ${work_dir}/ref.txt: ${work_dir}/extracted/.done
 ############################################
 ${work_dir}/predicted.txt: ${work_dir}/ref.txt | ${work_dir}/cache
 	$(python_cmd) src/predict.py --in_f $^ --l ${work_dir}/extracted/${extr_dir}/clips \
-		--cache_dir ${work_dir}/cache --url $(tr_url) --out_file  $@_ --workers $(n)
+		--cache_dir ${work_dir}/cache --url $(tr_url) --out_file  $@_ --workers $(workers)
 	mv $@_ $@
 ############################################
 eval/wer: ${work_dir}/predicted.txt ${work_dir}/ref.txt
@@ -35,7 +35,7 @@ eval/wer: ${work_dir}/predicted.txt ${work_dir}/ref.txt
 .PHONY: eval/wer
 ############################################
 eval/cmp: ${work_dir}/predicted.txt ${work_dir}/ref.txt
-	$(python_cmd) src/cmp.py --ref ${work_dir}/ref.txt --pred ${work_dir}/predicted.txt --n $(n)
+	$(python_cmd) src/cmp.py --ref ${work_dir}/ref.txt --pred ${work_dir}/predicted.txt
 .PHONY: eval/cmp
 ############################################
 eval/tmp/wer: ${work_dir}/ref.txt
